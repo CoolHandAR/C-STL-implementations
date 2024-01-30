@@ -112,7 +112,7 @@ static bool _dA_handleAlloc(dynamic_array* p_dA, size_t p_size)
         if(_dA_safeRealloc(p_dA, next_element_alloc_size))
         {
             //get the pointer to the last element after address
-            void* last_element_after_address = p_dA->data + (p_dA->elements_size * p_dA->alloc_size);
+            void* last_element_after_address = (char*)p_dA->data + (p_dA->elements_size * p_dA->alloc_size);
             //init the items
             __dA_ZERO_MEMORY(last_element_after_address, p_dA->alloc_size * p_size);
 
@@ -125,7 +125,7 @@ static bool _dA_handleAlloc(dynamic_array* p_dA, size_t p_size)
     else
     {
         //get the pointer to the last element after address
-        void* last_element_after_address = p_dA->data + (p_dA->elements_size * p_dA->alloc_size);
+        void* last_element_after_address = (char*)p_dA->data + (p_dA->elements_size * p_dA->alloc_size);
         //init the items
         __dA_ZERO_MEMORY(last_element_after_address, p_dA->alloc_size * p_size);
         p_dA->elements_size += p_size;
@@ -324,10 +324,10 @@ bool dA_insert(dynamic_array* p_dA, size_t p_pos, size_t p_amount)
     }
  
     //address where we want to insert the data
-    void* pos_address = p_dA->data + (p_pos * p_dA->alloc_size);
+    void* pos_address = (char*)p_dA->data + (p_pos * p_dA->alloc_size);
     
     //address after the placed items
-    void* next_address = pos_address + (p_amount * p_dA->alloc_size);
+    void* next_address = (char*)pos_address + (p_amount * p_dA->alloc_size);
 
     //byte size of the items we are moving forward
     //Note: the elements size is not yet increased by p_amount
@@ -363,10 +363,10 @@ bool dA_erase(dynamic_array* p_dA, size_t p_pos, size_t p_amount)
     assert(next_elements_size >= 0 && "Deleting more items than the array holds");
 
     //address where we want to remove the data from
-    void* pos_address = p_dA->data + (p_pos * p_dA->alloc_size);
+    void* pos_address = (char*)p_dA->data + (p_pos * p_dA->alloc_size);
     
      //address after the deleted items
-    void* next_address = pos_address + (p_amount * p_dA->alloc_size);
+    void* next_address = (char*)pos_address + (p_amount * p_dA->alloc_size);
 
     //byte size of the items we are moving back
     p_dA->elements_size -= p_amount;

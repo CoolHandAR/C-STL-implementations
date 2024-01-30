@@ -1,4 +1,3 @@
-
 #include "thirdparty/utest.h"
 #include "dynamic_array.h"
 
@@ -131,6 +130,26 @@ UTEST(dA_CAPACITY, TESTING_RESIZIGN_AND_CAPACITY)
     dA_shrinkToFit(dynamic_array);
     ASSERT_EQ(dynamic_array->elements_size, 10);
     ASSERT_EQ(dynamic_array->capacity, 10);
+
+    dA_Destruct(dynamic_array);
+}
+
+UTEST(dA_Speed, TESTING_ITERATION_SPEED)
+{
+    dynamic_array* dynamic_array = dA_INIT(size_t, 100000000);
+    
+    for (size_t i = 0; i < dynamic_array->elements_size; i++)
+    {
+        size_t* array = dynamic_array->data;
+        size_t j = (i + 1) % dynamic_array->elements_size;
+
+        array[i] = i;
+        
+        if (i % 2 == 0)
+            array[i] = j;
+        
+    }
+    
 
     dA_Destruct(dynamic_array);
 }
