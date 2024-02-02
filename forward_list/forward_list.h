@@ -31,7 +31,7 @@ Internal! DO NOT USE!
 */
 static FL_Head* _FL_Init(size_t p_allocSize)
 {
-    assert(p_allocSize > 0 && "Alloc size must be higher than 0");
+    assert(p_allocSize > 0 && "Invalid item. Can't Allocate");
     
     FL_Head* head_ptr = malloc(sizeof(FL_Head));
 
@@ -46,6 +46,32 @@ static FL_Head* _FL_Init(size_t p_allocSize)
     
     return head_ptr;
 }
+/*
+Internal! DO NOT USE!
+*/
+static FL_Node* _FL_AllocSingleNode(FL_Head* p_head)
+{
+    assert(p_head->alloc_size > 0 && "Alloc size not set");
+
+    FL_Node* new_node = malloc(sizeof(FL_Node));
+
+    //Failed to Alloc
+    if (new_node == NULL)
+        return NULL;
+
+    new_node->value = calloc(1, p_head->alloc_size);
+
+    //Failed to alloc value
+    if (new_node->value == NULL)
+    {
+        free(new_node);
+        return NULL;
+    }
+
+    new_node->next = NULL;
+
+    return new_node;
+}
 
 /**
  * Place a node in the back of the list
@@ -55,14 +81,13 @@ static FL_Head* _FL_Init(size_t p_allocSize)
 */
 FL_Node* FL_emplaceBack(FL_Head* p_head)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size not set");
-
     //Add to head if its the first element
     if(p_head->next == NULL)
     {
-        FL_Node* node = malloc(sizeof(FL_Node));
-        node->next = NULL;
-        node->value = calloc(1, p_head->alloc_size);
+        FL_Node* node = _FL_AllocSingleNode(p_head);
+        
+        if (node == NULL)
+            return NULL;
 
         p_head->next = node;
         p_head->node_size++;
@@ -78,9 +103,10 @@ FL_Node* FL_emplaceBack(FL_Head* p_head)
         candidate = candidate->next;
     }
     
-    FL_Node* new_node = malloc(sizeof(FL_Node));
-    new_node->value = calloc(1, p_head->alloc_size);
-    new_node->next = NULL;
+    FL_Node* new_node = _FL_AllocSingleNode(p_head);
+    
+    if (new_node == NULL)
+        return NULL;
 
     candidate->next = new_node;
 
@@ -102,9 +128,10 @@ FL_Node* FL_emplaceFront(FL_Head* p_head)
     //Add to head if its the first element
     if(p_head->next == NULL)
     {
-        FL_Node* node = malloc(sizeof(FL_Node));
-        node->next = NULL;
-        node->value = calloc(1, p_head->alloc_size);
+        FL_Node* node = _FL_AllocSingleNode(p_head);
+
+        if (node == NULL)
+            return NULL;
 
         p_head->next = node;
         p_head->node_size++;
@@ -112,8 +139,10 @@ FL_Node* FL_emplaceFront(FL_Head* p_head)
         return p_head->next;
     }
 
-    FL_Node* new_node = malloc(sizeof(FL_Node));
-    new_node->value = calloc(1, p_head->alloc_size);
+    FL_Node* new_node = _FL_AllocSingleNode(p_head);
+
+    if (new_node == NULL)
+        return NULL;
 
     //Take the next from the head
     new_node->next = p_head->next;
@@ -134,10 +163,11 @@ FL_Node* FL_emplaceFront(FL_Head* p_head)
 */
 FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size not set");
+    FL_Node* new_node = _FL_AllocSingleNode(p_head);
+    
+    if (new_node == NULL)
+        return NULL;
 
-    FL_Node* new_node = malloc(sizeof(FL_Node));
-    new_node->value = calloc(1, p_head->alloc_size);
     new_node->next = p_node->next;
 
     p_node->next = new_node;
@@ -153,10 +183,7 @@ FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node)
 */
 void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size not set");
-
-    if(p_node->next == NULL)
-        return;
+    assert(p_node->next != NULL && "No node after p_node to erase");
 
     FL_Node* erase_target = p_node->next;
 
@@ -178,7 +205,6 @@ void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node)
 */
 FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size not set");
     assert(p_index < p_head->node_size && "Index out of bounds");
     assert(p_amount > 0 && "Amount must be higher than zero");
 
@@ -212,11 +238,9 @@ FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 */
 void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size not set");
     assert(p_index < p_head->node_size && "Index out of bounds");
     assert(p_amount <= (p_head->node_size - p_index) && "Trying to erase more nodes than possible");
 
-    
     if(p_amount == 0)
         return;
 
@@ -238,7 +262,6 @@ void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 */
 void FL_popFront(FL_Head* p_head)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size must be higher than 0");
     assert(p_head->node_size > 0 && "No nodes to delete");
 
     FL_Node* pop_target = p_head->next;
@@ -257,7 +280,6 @@ void FL_popFront(FL_Head* p_head)
 */
 void FL_popLast(FL_Head* p_head)
 {
-    assert(p_head->alloc_size > 0 && "Alloc size must be higher than 0");
     assert(p_head->node_size > 0 && "No nodes to delete");
 
     FL_Node* prev_node = NULL;

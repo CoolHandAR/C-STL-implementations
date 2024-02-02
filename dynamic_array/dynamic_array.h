@@ -154,7 +154,7 @@ bool dA_resize(dynamic_array* p_dA, size_t p_newSize)
     //are we increasing the size or decreasing it?
     if(p_newSize > p_dA->elements_size)
     {
-        int diff = p_newSize - p_dA->elements_size;
+        size_t diff = p_newSize - p_dA->elements_size;
 
         if(_dA_handleAlloc(p_dA, diff))
         {
@@ -315,7 +315,7 @@ bool dA_insert(dynamic_array* p_dA, size_t p_pos, size_t p_amount)
     if(p_amount == 0)
         return false;
 
-    const int before_element_size = p_dA->elements_size;
+    const size_t before_element_size = p_dA->elements_size;
 
     //failed to alloc for some reason
     if(!_dA_handleAlloc(p_dA, p_amount))
@@ -354,13 +354,14 @@ bool dA_erase(dynamic_array* p_dA, size_t p_pos, size_t p_amount)
 {
     _dA_assertSetData(p_dA);
     assert(p_pos < p_dA->elements_size && "dA out of bounds");
+    assert(p_amount < (p_dA->elements_size - p_index) && "Deleting more items possible");
     
     if(p_amount == 0)
         return false;
 
-    const int next_elements_size = p_dA->elements_size - p_amount;
+    //const int next_elements_size = p_dA->elements_size - p_amount;
     
-    assert(next_elements_size >= 0 && "Deleting more items than the array holds");
+   // assert(next_elements_size >= 0 && "Deleting more items than the array holds");
 
     //address where we want to remove the data from
     void* pos_address = (char*)p_dA->data + (p_pos * p_dA->alloc_size);
