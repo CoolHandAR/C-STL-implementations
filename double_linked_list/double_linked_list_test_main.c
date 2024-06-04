@@ -1,3 +1,4 @@
+#define DOUBLE_LINKED_LIST_IMPLEMENTATION
 #include "double_linked_list.h"
 
 #include "thirdparty/utest.h"

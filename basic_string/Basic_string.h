@@ -1,27 +1,17 @@
 #ifndef BASIC_STRING_H
 #define BASIC_STRING_H
+#pragma once
+
+
+/*
+   Usage define on atleast one .c file
+   #define BASIC_STRING_IMPLEMENTATION
+   #include "String.h"
+*/
+
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-#include <limits.h>
-#include <assert.h>
-#include <math.h>
-
-
-#ifdef BASIC_STRING_USE_SECURE_ZERO_MEMORY
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined( _WIN64) ||defined(__NT__)
-#include <Windows.h>
-#include <WinBase.h>
-#define __STRING_ZERO_MEMORY(DEST, SIZEOFDATA) SecureZeroMemory(DEST, SIZEOFDATA); 
-#endif
-#else
-#define __STRING_ZERO_MEMORY(DEST, SIZEOFDATA) memset(DEST, 0, SIZEOFDATA)
-#endif
-
-#define STRING_NPOS SIZE_MAX
-#define _STRING_BLOCK_ALLOC_SIZE 16
-#define _STRING_NULL_TERMINATED_BYTE 1
 
 typedef struct String
 {
@@ -29,19 +19,65 @@ typedef struct String
     size_t size; // The amount of chars currently held NOTE: The size does not account for the null terminated character
     char* data; //The raw char data
 } String;
+#define STRING_NPOS SIZE_MAX
 
-/**
+#ifdef __cplusplus
+extern "C" {
+#endif
+    /**
  * Init the the string
 \param STRING The string to init with
 
 \return Pointer to the String struct
 */
 #define String_INIT(STRING) _String_Init(STRING);
+    extern void String_append(String* const p_string, const char* p_toAppend);
+    extern void String_insert(String* const p_string, const char* p_toInsert, size_t p_index);
+    extern void String_erase(String* const p_string, size_t p_index, size_t p_amount);
+    extern void String_replaceAtIndex(String* const p_string, size_t p_index, const char* p_toReplace);
+    extern void String_popBack(String* const p_string);
+    extern void String_pushBack(String* const p_string, const char p_char);
+    extern bool String_reserve(String* const p_string, size_t p_toReserve);
+    extern bool String_shrinkToFit(String* const p_string);
+    extern bool String_resize(String* const p_string, size_t p_newSize);
+    extern size_t String_findFirstOf(String* const p_string, const char* p_find);
+    extern size_t String_findLastOf(String* const p_string, const char* p_find);
+    extern bool String_startsWith(String* const p_string, const char* p_target);
+    extern bool String_startsWithOther(String* const p_string, String* const p_target);
+    extern bool String_endsWith(String* const p_string, const char* p_target);
+    extern bool String_endsWithOther(String* const p_string, String* const p_target);
+    extern bool String_contains(String* const p_string, const char* p_target);
+    extern bool String_containsOther(String* const p_string, String* const p_target);
+    extern String* String_substr(String* const p_string, size_t p_index, size_t p_amount);
+    extern void String_clear(String* const p_string);
+    extern void String_Destruct(String* p_string);
+    extern void String_set(String* const p_string, const char* p_toSet);
+#ifdef __cplusplus
+}
+#endif
 
-/**
-_Internal: DO NOT USE!
+/*
+This is for preventing greying out of the implementation section.
 */
-static size_t _String_calculateBlocks(size_t p_charSize)
+#if defined(Q_CREATOR_RUN) || defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
+#define BASIC_STRING_IMPLEMENTATION
+#endif
+
+#if defined(BASIC_STRING_IMPLEMENTATION)
+#ifndef BASIC_STRING_C
+#define BASIC_STRING_C
+
+#define __STRING_ZERO_MEMORY(DEST, SIZEOFDATA) memset(DEST, 0, SIZEOFDATA)
+#define _STRING_BLOCK_ALLOC_SIZE 16
+#define _STRING_NULL_TERMINATED_BYTE 1
+
+#include <string.h>
+#include <limits.h>
+#include <assert.h>
+#include <math.h>
+
+
+size_t _String_calculateBlocks(size_t p_charSize)
 {
     //if less than the alloc block we can just give 1 without any more calculations
     if (p_charSize < _STRING_BLOCK_ALLOC_SIZE)
@@ -62,7 +98,7 @@ static size_t _String_calculateBlocks(size_t p_charSize)
 /**
 _Internal: DO NOT USE!
 */
-static String* _String_Init(const char* p_firstString)
+String* _String_Init(const char* p_firstString)
 {
     String* ptr = malloc(sizeof(String));
 
@@ -87,7 +123,7 @@ static String* _String_Init(const char* p_firstString)
 
     //this function sets null terminated char at the end
     //strncpy(ptr->data, p_firstString, size_with_null_char);
-    
+
     strcpy_s(ptr->data, size_with_null_char, p_firstString);
 
     ptr->capacity = byte_size;
@@ -98,7 +134,7 @@ static String* _String_Init(const char* p_firstString)
 /**
 _Internal: DO NOT USE!
 */
-static void _String_fixTail(String* const p_string)
+void _String_fixTail(String* const p_string)
 {
     char* ptr = p_string->data + p_string->size;
 
@@ -108,7 +144,7 @@ static void _String_fixTail(String* const p_string)
 /**
 _Internal: DO NOT USE!
 */
-static bool _String_safeRealloc(String* const p_string, size_t p_size)
+bool _String_safeRealloc(String* const p_string, size_t p_size)
 {
     char* prev = p_string->data;
 
@@ -128,13 +164,13 @@ static bool _String_safeRealloc(String* const p_string, size_t p_size)
 /**
 _Internal: DO NOT USE!
 */
-static char* _String_handleAlloc(String* const p_string, size_t p_size)
+char* _String_handleAlloc(String* const p_string, size_t p_size)
 {
     const size_t new_size = p_string->size + p_size + _STRING_NULL_TERMINATED_BYTE;
     const size_t old_size = p_string->size;
 
     //assert(old_size > 0 && "Should not happen");
- 
+
     //realloc if our capacity is lower than the new element size
     if (new_size > p_string->capacity)
     {
@@ -154,14 +190,14 @@ static char* _String_handleAlloc(String* const p_string, size_t p_size)
     //there is enough capacity for the new elements
     else
     {
-        p_string->size+= p_size; //We do not factor the null byte
+        p_string->size += p_size; //We do not factor the null byte
     }
 
     //ptr to the null terminated byte
     char* ptr = p_string->data + old_size;
 
     //memset zero so that last char is null terminated
-     __STRING_ZERO_MEMORY(ptr, p_size + _STRING_NULL_TERMINATED_BYTE);
+    __STRING_ZERO_MEMORY(ptr, p_size + _STRING_NULL_TERMINATED_BYTE);
 
     //and now the pointer points to the start of the allocated space
     return ptr;
@@ -169,7 +205,7 @@ static char* _String_handleAlloc(String* const p_string, size_t p_size)
 
 
 /**
- * Append characters to the end 
+ * Append characters to the end
 \param p_string String pointer
 \param p_toAppend Characters to append NOTE: Does nothing if strlen == 0
 
@@ -247,7 +283,7 @@ void String_erase(String* const p_string, size_t p_index, size_t p_amount)
     //copy back
     memcpy(pos_address, next_address, byte_size);
 
-    
+
     //memset zero the old values
     __STRING_ZERO_MEMORY(p_string->data + p_string->size, p_amount);
 
@@ -267,8 +303,8 @@ void String_replaceAtIndex(String* const p_string, size_t p_index, const char* p
 
     char* pos_address = p_string->data + p_index;
 
-   // strncpy(pos_address, p_toReplace, str_len);
-    
+    // strncpy(pos_address, p_toReplace, str_len);
+
     strcpy_s(pos_address, str_len + _STRING_NULL_TERMINATED_BYTE, p_toReplace);
 }
 
@@ -293,7 +329,7 @@ void String_popBack(String* const p_string)
 /**
  * Add a single character from the end
 \param p_string String pointer
-\param p_char character to add 
+\param p_char character to add
 */
 void String_pushBack(String* const p_string, const char p_char)
 {
@@ -384,7 +420,7 @@ bool String_resize(String* const p_string, size_t p_newSize)
 \param p_string String pointer
 \param p_find What to find
 
-return Start index of the string found. NOTE: Returns STRING_NPOS if nothing was found  
+return Start index of the string found. NOTE: Returns STRING_NPOS if nothing was found
 */
 size_t String_findFirstOf(String* const p_string, const char* p_find)
 {
@@ -408,7 +444,7 @@ size_t String_findFirstOf(String* const p_string, const char* p_find)
             if (compare_result == 0)
             {
                 return i;
-            }         
+            }
         }
     }
 
@@ -492,7 +528,7 @@ bool String_endsWith(String* const p_string, const char* p_target)
         return false;
 
     size_t str_len = strlen(p_target);
-    
+
     return p_string->size - find == str_len;
 }
 /**
@@ -506,7 +542,7 @@ bool String_endsWithOther(String* const p_string, String* const p_target)
 {
     assert(p_string->size > 0 && "Empty string");
     assert(p_target->size > 0 && "Empty String");
-    
+
     return String_endsWith(p_string, p_target->data);
 }
 
@@ -561,7 +597,7 @@ String* String_substr(String* const p_string, size_t p_index, size_t p_amount)
 
     if (str == NULL)
         return NULL;
-    
+
     char* ptr = _String_handleAlloc(str, str_length);
 
     if (ptr == NULL)
@@ -599,7 +635,7 @@ void String_Destruct(String* p_string)
 }
 
 /**
- * Clears the string and sets a new string 
+ * Clears the string and sets a new string
 \param p_string String pointer
 \param p_toSet What to set the string to
 */
@@ -621,3 +657,5 @@ void String_set(String* const p_string, const char* p_toSet)
 }
 
 #endif
+#endif
+#endif //BASIC_STRING_H

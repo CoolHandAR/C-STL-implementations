@@ -1,8 +1,14 @@
 #ifndef DOUBLE_LINKED_LIST_H
 #define DOUBLE_LINKED_LIST_H
+#pragma once
 
 #include <stdlib.h>
-#include <assert.h>
+
+/*
+   Usage define on atleast one .c file
+   #define DOUBLE_LINKED_LIST_IMPLEMENTATION
+   #include "double_linked_list.h"
+*/
 
 typedef struct DLL_Node
 {
@@ -12,7 +18,6 @@ typedef struct DLL_Node
 
 } DLL_Node;
 
-
 typedef struct DLL_Head
 {
     size_t node_size; // The amount of nodes currently stored in the list;
@@ -20,43 +25,78 @@ typedef struct DLL_Head
     DLL_Node* next; // First node in the list;
 } DLL_Head;
 
-/**
- * Init the doubly linked list
-\param T The type of item that will be stored
+#ifdef __cplusplus
+extern "C" {
+#endif
+    /**
+     * Init the doubly linked list
+    \param T The type of item that will be stored
 
-\return Pointer to the DLL_Head
-*/
+    \return Pointer to the DLL_Head
+    */
 #define DLL_INIT(T) _DLL_Init(sizeof(T))
+    extern DLL_Node* DLL_emplaceBack(DLL_Head* p_head);
+    extern DLL_Node* DLL_emplaceFront(DLL_Head* p_head);
+    extern DLL_Node* DLL_insertAfterNode(DLL_Head* p_head, DLL_Node* p_node);
+    extern DLL_Node* DLL_insertBeforeNode(DLL_Head* p_head, DLL_Node* p_node);
+    extern DLL_Node* DLL_insertAfterIndex(DLL_Head* p_head, size_t p_index, size_t p_amount);
+    extern void DLL_eraseAfterNode(DLL_Head* p_head, DLL_Node* p_node);
+    extern void DLL_eraseBeforeNode(DLL_Head* p_head, DLL_Node* p_node);
+    extern void DLL_eraseAfterIndex(DLL_Head* p_head, size_t p_index, size_t p_amount);
+    extern void DLL_popLast(DLL_Head* p_head);
+    extern void DLL_popFront(DLL_Head* p_head);
+    extern void DLL_Remove(DLL_Head* p_head, DLL_Node* p_targetNode);
+    extern DLL_Node* DLL_at(DLL_Head* p_head, size_t p_index);
+    extern DLL_Node* DLL_getLast(DLL_Head* p_head);
+    extern void DLL_clear(DLL_Head* p_head);
+    extern void DLL_Destruct(DLL_Head* p_head);
+
+#ifdef __cplusplus
+}
+#endif
+
+/*
+This is for preventing greying out of the implementation section.
+*/
+#if defined(Q_CREATOR_RUN) || defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
+#define DOUBLE_LINKED_LIST_IMPLEMENTATION
+#endif
+
+#if defined(DOUBLE_LINKED_LIST_IMPLEMENTATION)
+#ifndef DOUBLE_LINKED_LIST_C
+#define DOUBLE_LINKED_LIST_C
+
+#include <assert.h>
 
 /*
 Internal! DO NOT USE!
 */
-static DLL_Head* _DLL_Init(size_t p_allocSize)
+DLL_Head* _DLL_Init(size_t p_allocSize)
 {
     assert(p_allocSize > 0 && "Alloc size must be higher than 0");
-    
+
     DLL_Head* head_ptr = malloc(sizeof(DLL_Head));
 
     //we failed to alloc the dynamic array
-    if(head_ptr == NULL)
+    if (head_ptr == NULL)
         return NULL;
 
     //SUCCESS
     head_ptr->alloc_size = p_allocSize;
     head_ptr->node_size = 0;
     head_ptr->next = NULL;
-    
+
     return head_ptr;
 }
 /*
 Internal! DO NOT USE!
 */
-static DLL_Node* _DLL_AllocSingleNode(DLL_Head* p_head)
+DLL_Node* _DLL_AllocSingleNode(DLL_Head* p_head)
 {
     assert(p_head->alloc_size > 0 && "Alloc size not set");
 
     DLL_Node* new_node = malloc(sizeof(DLL_Node));
-    
+
     //Failed to Alloc
     if (new_node == NULL)
         return NULL;
@@ -86,10 +126,10 @@ static DLL_Node* _DLL_AllocSingleNode(DLL_Head* p_head)
 DLL_Node* DLL_emplaceBack(DLL_Head* p_head)
 {
     //Add to head if its the first element
-    if(p_head->next == NULL)
+    if (p_head->next == NULL)
     {
         DLL_Node* new_node = _DLL_AllocSingleNode(p_head);
-        
+
         if (new_node == NULL)
             return NULL;
 
@@ -98,7 +138,7 @@ DLL_Node* DLL_emplaceBack(DLL_Head* p_head)
 
         return new_node;
     }
- 
+
     DLL_Node* candidate = p_head->next;
 
     //find the last node without a active next node
@@ -106,7 +146,7 @@ DLL_Node* DLL_emplaceBack(DLL_Head* p_head)
     {
         candidate = candidate->next;
     }
-    
+
     DLL_Node* new_node = _DLL_AllocSingleNode(p_head);
 
     if (new_node == NULL)
@@ -129,9 +169,9 @@ DLL_Node* DLL_emplaceBack(DLL_Head* p_head)
 DLL_Node* DLL_emplaceFront(DLL_Head* p_head)
 {
     assert(p_head->alloc_size > 0 && "Alloc size not set");
-    
+
     DLL_Node* new_node = _DLL_AllocSingleNode(p_head);
- 
+
     if (new_node == NULL)
         return NULL;
 
@@ -156,7 +196,7 @@ DLL_Node* DLL_insertAfterNode(DLL_Head* p_head, DLL_Node* p_node)
     assert(p_head->node_size > 0 && "The node does not belong to the list");
 
     DLL_Node* new_node = _DLL_AllocSingleNode(p_head);
-    
+
     if (new_node == NULL)
         return NULL;
 
@@ -309,11 +349,11 @@ void DLL_popLast(DLL_Head* p_head)
     }
 
     //should not happen
-    if(last_node == NULL)
+    if (last_node == NULL)
         return;
 
     //Release from the prev
-    if(last_node->prev != NULL)
+    if (last_node->prev != NULL)
     {
         last_node->prev->next = NULL;
     }
@@ -423,7 +463,6 @@ DLL_Node* DLL_at(DLL_Head* p_head, size_t p_index)
     return find_node;
 }
 
-
 DLL_Node* DLL_getLast(DLL_Head* p_head)
 {
     assert(p_head->node_size > 0 && "No nodes emplaced");
@@ -437,7 +476,6 @@ DLL_Node* DLL_getLast(DLL_Head* p_head)
 
     return find_node;
 }
-
 
 /**
  * Removes all nodes from the list
@@ -485,10 +523,12 @@ void DLL_clear(DLL_Head* p_head)
 void DLL_Destruct(DLL_Head* p_head)
 {
     DLL_clear(p_head);
-    
+
     free(p_head);
 
     p_head = NULL;
 }
 
 #endif
+#endif //DOUBLE_LINKED_LIST_C
+#endif //DOUBLE_LINKED_LIST_H

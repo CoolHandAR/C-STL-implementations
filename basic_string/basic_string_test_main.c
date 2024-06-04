@@ -1,5 +1,5 @@
 #include "thirdparty/utest.h"
-
+#define BASIC_STRING_IMPLEMENTATION
 #include "Basic_string.h"
 
 UTEST_MAIN();

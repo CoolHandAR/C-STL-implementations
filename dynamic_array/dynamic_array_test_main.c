@@ -1,4 +1,5 @@
 #include "thirdparty/utest.h"
+#define DYNAMIC_ARRAY_IMPLEMENTATION
 #include "dynamic_array.h"
 
 UTEST_MAIN();

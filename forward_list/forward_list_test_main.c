@@ -1,3 +1,4 @@
+#define FORWARD_LIST_IMPLEMENTATION
 #include "forward_list.h"
 
 #include "thirdparty/utest.h"
