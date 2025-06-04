@@ -1,19 +1,13 @@
 #ifndef FORWARD_LIST_H
 #define FORWARD_LIST_H
-#pragma once
 
 #include <stdlib.h>
-
-/*
-   Usage define on atleast one .c file
-   #define FORWARD_LIST_IMPLEMENTATION
-   #include "forward_list.h"
-*/
+#include <assert.h>
 
 typedef struct FL_Node
 {
     void* value; // The value stored;
-    struct FL_Node* next; // Node after this node;
+  struct FL_Node* next; // Node after this node;
 } FL_Node;
 
 typedef struct FL_Head
@@ -21,74 +15,41 @@ typedef struct FL_Head
     size_t alloc_size; //The allocation byte size;
     size_t node_size; // The amount of nodes currently stored in the list;
     FL_Node* next; // First node in the list;
+
 } FL_Head;
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 /**
-* Init the forward list
+ * Init the forward list
 \param T The type of item that will be stored
 
 \return Pointer to the FL_Forward_Head
 */
 #define FL_INIT(T) _FL_Init(sizeof(T))
-    extern FL_Node* FL_emplaceBack(FL_Head* p_head);
-    extern FL_Node* FL_emplaceFront(FL_Head* p_head);
-    extern FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node);
-    extern void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node);
-    extern FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount);
-    extern void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount);
-    extern void FL_popFront(FL_Head* p_head);
-    extern void FL_popLast(FL_Head* p_head);
-    extern void FL_remove(FL_Head* p_head, FL_Node* p_targetNode);
-    extern void FL_removeAtIndex(FL_Head* p_head, size_t p_index);
-    extern FL_Node* FL_at(FL_Head* p_head, size_t p_index);
-    extern void FL_clear(FL_Head* p_head);
-    extern void FL_Destruct(FL_Head* p_head);
-#ifdef __cplusplus
-}
-#endif
-
-
-/*
-This is for preventing greying out of the implementation section.
-*/
-#if defined(Q_CREATOR_RUN) || defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
-#define FORWARD_LIST_IMPLEMENTATION
-#endif
-
-#if defined(FORWARD_LIST_IMPLEMENTATION)
-#ifndef FORWARD_LIST_C
-#define FORWARD_LIST_C
-
-#include <assert.h>
 
 /*
 Internal! DO NOT USE!
 */
-FL_Head* _FL_Init(size_t p_allocSize)
+static FL_Head* _FL_Init(size_t p_allocSize)
 {
     assert(p_allocSize > 0 && "Invalid item. Can't Allocate");
-
+    
     FL_Head* head_ptr = malloc(sizeof(FL_Head));
 
-    //we failed to alloc
-    if (head_ptr == NULL)
+    //we failed to alloc the dynamic array
+    if(head_ptr == NULL)
         return NULL;
 
     //SUCCESS
     head_ptr->alloc_size = p_allocSize;
     head_ptr->node_size = 0;
     head_ptr->next = NULL;
-
+    
     return head_ptr;
 }
 /*
 Internal! DO NOT USE!
 */
-FL_Head* _FL_AllocSingleNode(FL_Head* p_head)
+static FL_Node* _FL_AllocSingleNode(FL_Head* p_head)
 {
     assert(p_head->alloc_size > 0 && "Alloc size not set");
 
@@ -118,13 +79,13 @@ FL_Head* _FL_AllocSingleNode(FL_Head* p_head)
 
 \return The emplaced node
 */
-FL_Node* FL_emplaceBack(FL_Head* p_head)
+inline FL_Node* FL_emplaceBack(FL_Head* p_head)
 {
     //Add to head if its the first element
-    if (p_head->next == NULL)
+    if(p_head->next == NULL)
     {
         FL_Node* node = _FL_AllocSingleNode(p_head);
-
+        
         if (node == NULL)
             return NULL;
 
@@ -141,9 +102,9 @@ FL_Node* FL_emplaceBack(FL_Head* p_head)
     {
         candidate = candidate->next;
     }
-
+    
     FL_Node* new_node = _FL_AllocSingleNode(p_head);
-
+    
     if (new_node == NULL)
         return NULL;
 
@@ -160,12 +121,12 @@ FL_Node* FL_emplaceBack(FL_Head* p_head)
 
 \return The emplaced node
 */
-FL_Node* FL_emplaceFront(FL_Head* p_head)
+inline FL_Node* FL_emplaceFront(FL_Head* p_head)
 {
     assert(p_head->alloc_size > 0 && "Alloc size not set");
 
     //Add to head if its the first element
-    if (p_head->next == NULL)
+    if(p_head->next == NULL)
     {
         FL_Node* node = _FL_AllocSingleNode(p_head);
 
@@ -200,10 +161,10 @@ FL_Node* FL_emplaceFront(FL_Head* p_head)
 
 \return The inserted node
 */
-FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node)
+inline FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node)
 {
     FL_Node* new_node = _FL_AllocSingleNode(p_head);
-
+    
     if (new_node == NULL)
         return NULL;
 
@@ -220,7 +181,7 @@ FL_Node* FL_insertAfterNode(FL_Head* p_head, FL_Node* p_node)
 \param p_head Pointer to the List head
 \param p_node The node to erase after
 */
-void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node)
+inline void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node)
 {
     assert(p_node->next != NULL && "No node after p_node to erase");
 
@@ -242,29 +203,29 @@ void FL_eraseAfterNode(FL_Head* p_head, FL_Node* p_node)
 
 \return Pointer to the first node inserted
 */
-FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
+inline FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 {
     assert(p_index < p_head->node_size && "Index out of bounds");
     assert(p_amount > 0 && "Amount must be higher than zero");
 
     FL_Node* node = p_head->next;
-    for (size_t i = 0; i < p_index; i++)
+    for(size_t i = 0; i < p_index; i++)
     {
         node = node->next;
     }
     FL_Node* first_inserted_node = NULL;
     FL_Node* last_inserted_node = NULL;
-    for (size_t i = 0; i < p_amount; i++)
+    for(size_t i = 0; i < p_amount; i++)
     {
         FL_Node* inserted_node = FL_insertAfterNode(p_head, node);
 
-        if (i == 0)
+        if(i == 0)
             first_inserted_node = inserted_node;
 
         else
             last_inserted_node = inserted_node;
     }
-
+    
 
     return first_inserted_node;
 }
@@ -275,21 +236,21 @@ FL_Node* FL_insertAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 \param p_index The index to erase after
 \param p_amount The amount to erase
 */
-void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
+inline void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
 {
     assert(p_index < p_head->node_size && "Index out of bounds");
     assert(p_amount <= (p_head->node_size - p_index) && "Trying to erase more nodes than possible");
 
-    if (p_amount == 0)
+    if(p_amount == 0)
         return;
 
     FL_Node* node = p_head->next;
-    for (size_t i = 0; i < p_index; i++)
+    for(size_t i = 0; i < p_index; i++)
     {
         node = node->next;
     }
 
-    for (size_t i = 0; i < p_amount; i++)
+    for(size_t i = 0; i < p_amount; i++)
     {
         FL_eraseAfterNode(p_head, node);
     }
@@ -299,7 +260,7 @@ void FL_eraseAfterIndex(FL_Head* p_head, size_t p_index, size_t p_amount)
  * Remove the first node from the list
 \param p_head Pointer to the List head
 */
-void FL_popFront(FL_Head* p_head)
+inline void FL_popFront(FL_Head* p_head)
 {
     assert(p_head->node_size > 0 && "No nodes to delete");
 
@@ -317,7 +278,7 @@ void FL_popFront(FL_Head* p_head)
  * Remove the last node from the list
 \param p_head Pointer to the List head
 */
-void FL_popLast(FL_Head* p_head)
+inline void FL_popLast(FL_Head* p_head)
 {
     assert(p_head->node_size > 0 && "No nodes to delete");
 
@@ -335,12 +296,12 @@ void FL_popLast(FL_Head* p_head)
     free(last_node);
 
     //set the previous node's next to null
-    if (prev_node != NULL)
+    if(prev_node != NULL)
         prev_node->next = NULL;
     //otherwise the last node must belong to the head
     else
         p_head->next = NULL;
-
+    
     p_head->node_size--;
 }
 /**
@@ -348,33 +309,36 @@ void FL_popLast(FL_Head* p_head)
 \param p_head Pointer to the List head
 \param p_targetNode The node to remove
 */
-void FL_remove(FL_Head* p_head, FL_Node* p_targetNode)
+inline void FL_remove(FL_Head* p_head, FL_Node* p_targetNode)
 {
     assert(p_head->alloc_size > 0 && "Alloc size must be higher than 0");
 
-    if (p_targetNode == NULL || p_head->next == NULL)
+    if(p_targetNode == NULL || p_head->next == NULL)
         return;
 
     FL_Node* prev_node = NULL;
     FL_Node* find_node = p_head->next;
 
-    for (size_t i = 0; i <= p_head->node_size; i++)
-    {
+    for(size_t i = 0; i <= p_head->node_size; i++)
+    { 
+        if (find_node == NULL)
+            break;
+
         prev_node = find_node;
         find_node = find_node->next;
 
-        if (find_node == p_targetNode)
+        if(find_node == p_targetNode)
         {
             break;
         }
     }
 
     //we failed to find the node for some reason
-    if (find_node == NULL)
+    if(find_node == NULL)
         return;
 
     //if our prev node is valid add the next to the prev one
-    if (prev_node != NULL)
+    if(prev_node != NULL)
     {
         prev_node->next = find_node->next;
     }
@@ -383,8 +347,8 @@ void FL_remove(FL_Head* p_head, FL_Node* p_targetNode)
     {
         p_head->next = find_node->next;
     }
-
-
+    
+    
     //free the value and the node
     free(find_node->value);
     free(find_node);
@@ -399,28 +363,28 @@ void FL_remove(FL_Head* p_head, FL_Node* p_targetNode)
 \param p_head Pointer to the List head
 \param p_index Index of the node to remove
 */
-void FL_removeAtIndex(FL_Head* p_head, size_t p_index)
+inline void FL_removeAtIndex(FL_Head* p_head, size_t p_index)
 {
     assert(p_head->alloc_size > 0 && "Alloc size must be higher than 0");
     assert(p_index < p_head->node_size && "Index out of bounds");
 
     FL_Node* prev_node = NULL;
     FL_Node* find_node = p_head->next;
-    for (size_t i = 0; i < p_index; i++)
+    for(size_t i = 0; i < p_index; i++)
     {
         prev_node = find_node;
         find_node = find_node->next;
     }
 
-    //we failed to find the node for some reason
-    if (find_node == NULL)
+     //we failed to find the node for some reason
+    if(find_node == NULL)
         return;
 
     //check if we have a value after this one
-    if (find_node->next != NULL)
+    if(find_node->next != NULL)
     {
         //if our prev node is valid add the next to the prev one
-        if (prev_node != NULL)
+        if(prev_node != NULL)
         {
             prev_node->next = find_node->next;
         }
@@ -430,7 +394,7 @@ void FL_removeAtIndex(FL_Head* p_head, size_t p_index)
             p_head->next = find_node->next;
         }
     }
-
+    
     //free the value and the node
     free(find_node->value);
     free(find_node);
@@ -444,23 +408,23 @@ void FL_removeAtIndex(FL_Head* p_head, size_t p_index)
 \param p_index Index of the node to find
 \return Pointer to the node
 */
-FL_Node* FL_at(FL_Head* p_head, size_t p_index)
+inline FL_Node* FL_at(FL_Head* p_head, size_t p_index)
 {
     assert(p_head->alloc_size > 0 && "Alloc size must be higher than 0");
     assert(p_index < p_head->node_size && "Index out of bounds");
 
     FL_Node* find_node = p_head->next;
 
-    for (size_t i = 0; i < p_index; i++)
+    for(size_t i = 0; i < p_index; i++)
     {
-        if (find_node->next == NULL)
+        if(find_node->next == NULL)
             break;
 
         find_node = find_node->next;
     }
 
     //we failed to find the node for some reason
-    if (find_node == NULL)
+    if(find_node == NULL)
         return NULL;
 
     return find_node;
@@ -470,12 +434,12 @@ FL_Node* FL_at(FL_Head* p_head, size_t p_index)
  * Removes all nodes from the list
 \param p_head Pointer to the List head
 */
-void FL_clear(FL_Head* p_head)
+inline void FL_clear(FL_Head* p_head)
 {
     FL_Node* prev_node = NULL;
     FL_Node* last_node = p_head->next;
     //Delete starting from the last node
-    while (last_node != NULL)
+    while(last_node != NULL)
     {
         //Find the last node and the prev node before it
         while (last_node->next != NULL)
@@ -489,12 +453,12 @@ void FL_clear(FL_Head* p_head)
         free(last_node);
 
         //set the previous node's next to null
-        if (prev_node != NULL)
+        if(prev_node != NULL)
             prev_node->next = NULL;
         //otherwise the last node must belong to the head
         else
             p_head->next = NULL;
-
+        
         p_head->node_size--;
 
         //reset for the next loop
@@ -507,7 +471,7 @@ void FL_clear(FL_Head* p_head)
  * Destroys all nodes from the list and frees the head's memory
 \param p_head Pointer to the List head
 */
-void FL_Destruct(FL_Head* p_head)
+inline void FL_Destruct(FL_Head* p_head)
 {
     FL_clear(p_head);
 
@@ -516,6 +480,4 @@ void FL_Destruct(FL_Head* p_head)
     p_head = NULL;
 }
 
-#endif //FORWARD_LIST_C
-#endif 
-#endif // FORWARD_LIST_H
+#endif

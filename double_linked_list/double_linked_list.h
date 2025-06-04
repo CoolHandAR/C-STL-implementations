@@ -55,23 +55,12 @@ extern "C" {
 }
 #endif
 
-/*
-This is for preventing greying out of the implementation section.
-*/
-#if defined(Q_CREATOR_RUN) || defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
-#define DOUBLE_LINKED_LIST_IMPLEMENTATION
-#endif
-
-#if defined(DOUBLE_LINKED_LIST_IMPLEMENTATION)
-#ifndef DOUBLE_LINKED_LIST_C
-#define DOUBLE_LINKED_LIST_C
-
 #include <assert.h>
 
 /*
 Internal! DO NOT USE!
 */
-DLL_Head* _DLL_Init(size_t p_allocSize)
+static DLL_Head* _DLL_Init(size_t p_allocSize)
 {
     assert(p_allocSize > 0 && "Alloc size must be higher than 0");
 
@@ -88,6 +77,18 @@ DLL_Head* _DLL_Init(size_t p_allocSize)
 
     return head_ptr;
 }
+
+/*
+This is for preventing greying out of the implementation section.
+*/
+#if defined(Q_CREATOR_RUN) || defined(__INTELLISENSE__) || defined(__CDT_PARSER__)
+#define DOUBLE_LINKED_LIST_IMPLEMENTATION
+#endif
+
+#if defined(DOUBLE_LINKED_LIST_IMPLEMENTATION)
+#ifndef DOUBLE_LINKED_LIST_C
+#define DOUBLE_LINKED_LIST_C
+
 /*
 Internal! DO NOT USE!
 */
